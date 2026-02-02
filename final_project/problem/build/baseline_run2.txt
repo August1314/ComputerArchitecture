@@ -1,0 +1,39 @@
+
+========================================
+正确性验证
+========================================
+
+详细测试结果：
+算法                   状态    信息
+------------------------------------------------------------
+GaussianFilter           ✓ PASS  PASS
+PowerLawTransformation   ✓ PASS  PASS
+SobelEdgeDetection       ✓ PASS  PASS
+Transpose                ✓ PASS  PASS
+BoxFilter                ✓ PASS  PASS
+Rotate90Clockwise        ✓ PASS  PASS
+
+总体结果: ✓ 所有测试通过
+========================================
+
+-----------------------------------------------------------------------------------------------------------------------
+Benchmark                                                             Time             CPU   Iterations UserCounters...
+-----------------------------------------------------------------------------------------------------------------------
+ImageFixture<SMALL_SIZE>/GaussianFilter_Small/iterations:5         18.4 ms         18.4 ms            5 items_per_second=57.0666M/s
+ImageFixture<MEDIUM_SIZE>/GaussianFilter_Medium/iterations:5        294 ms          294 ms            5 items_per_second=57.1214M/s
+ImageFixture<LARGE_SIZE>/GaussianFilter_Large/iterations:5         4760 ms         4741 ms            5 items_per_second=56.6258M/s
+ImageFixture<SMALL_SIZE>/PowerLaw_Small/iterations:5               8.63 ms         8.62 ms            5 items_per_second=121.678M/s
+ImageFixture<MEDIUM_SIZE>/PowerLaw_Medium/iterations:5              138 ms          138 ms            5 items_per_second=121.841M/s
+ImageFixture<LARGE_SIZE>/PowerLaw_Large/iterations:5               2266 ms         2241 ms            5 items_per_second=119.778M/s
+ImageFixture<SMALL_SIZE>/Sobel_Small/iterations:5                  38.2 ms         38.1 ms            5 items_per_second=27.4945M/s
+ImageFixture<MEDIUM_SIZE>/Sobel_Medium/iterations:5                 615 ms          613 ms            5 items_per_second=27.3713M/s
+ImageFixture<LARGE_SIZE>/Sobel_Large/iterations:5                  9790 ms         9763 ms            5 items_per_second=27.4959M/s
+ImageFixture<SMALL_SIZE>/Transpose_Small/iterations:5              3.87 ms         3.86 ms            5 items_per_second=271.399M/s
+ImageFixture<MEDIUM_SIZE>/Transpose_Medium/iterations:5            73.2 ms         72.6 ms            5 items_per_second=231.142M/s
+ImageFixture<LARGE_SIZE>/Transpose_Large/iterations:5              3447 ms         3401 ms            5 items_per_second=78.9378M/s
+ImageFixture<SMALL_SIZE>/BoxFilter_Small/iterations:5               125 ms          124 ms            5 items_per_second=8.44028M/s
+ImageFixture<MEDIUM_SIZE>/BoxFilter_Medium/iterations:5            1958 ms         1951 ms            5 items_per_second=8.59927M/s
+ImageFixture<LARGE_SIZE>/BoxFilter_Large/iterations:5             34286 ms        33872 ms            5 items_per_second=7.92503M/s
+ImageFixture<SMALL_SIZE>/Rotate90_Small/iterations:5               5.94 ms         5.90 ms            5 items_per_second=177.737M/s
+ImageFixture<MEDIUM_SIZE>/Rotate90_Medium/iterations:5              108 ms          105 ms            5 items_per_second=159.186M/s
+ImageFixture<LARGE_SIZE>/Rotate90_Large/iterations:5               3523 ms         3345 ms            5 items_per_second=80.2517M/s

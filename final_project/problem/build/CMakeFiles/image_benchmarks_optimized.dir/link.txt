@@ -1,0 +1,1 @@
+/Library/Developer/CommandLineTools/usr/bin/c++  -Wall -Wextra -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/image_benchmarks_optimized.dir/benchmarks/image_benchmarks.cpp.o -o image_benchmarks_optimized  libimage_algorithms_optimized.a _deps/benchmark-build/src/libbenchmark.a

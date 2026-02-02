@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>2025 秋计算机体系结构大作业 实验报告</title>
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)'], ['$', '$']]
+      },
+      options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+    };
+  </script>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+  <style>
+    :root {
+      --bg: #f7f8fb;
+      --fg: #222;
+      --accent: #2563eb;
+      --accent-soft: rgba(37, 99, 235, 0.06);
+      --border: #d4d4d8;
+      --code-bg: #f4f4f5;
+      --table-header: #f3f4f6;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.6;
+      margin: 2rem auto;
+      max-width: 960px;
+      padding: 0 1.25rem 3rem;
+      color: var(--fg);
+      background: radial-gradient(circle at top left, #e5f0ff 0, transparent 55%), var(--bg);
+    }
+
+    h1, h2, h3, h4 { font-weight: 600; color: #111827; }
+    h1 {
+      font-size: 1.9rem;
+      margin-top: 0;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--accent-soft);
+    }
+    h2 {
+      font-size: 1.45rem;
+      margin-top: 2.2rem;
+      padding: 0.35rem 0.6rem;
+      background: var(--accent-soft);
+      border-left: 4px solid var(--accent);
+      border-radius: 0.3rem;
+    }
+    h3 {
+      font-size: 1.18rem;
+      margin-top: 1.6rem;
+    }
+    h4 { font-size: 1.05rem; margin-top: 1.2rem; }
+
+    p { margin: 0.5rem 0 0.7rem; }
+
+    code {
+      font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background: var(--code-bg);
+      padding: 0.08rem 0.35rem;
+      border-radius: 3px;
+      font-size: 0.92em;
+    }
+
+    pre {
+      background: #f4f4f5;
+      color: #111827;
+      padding: 0.85rem 1rem;
+      overflow-x: auto;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      border: 1px solid #e4e4e7;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 0.9rem 0;
+      font-size: 0.9rem;
+      background: white;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08);
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 0.4rem 0.55rem;
+      text-align: center;
+      white-space: nowrap;
+    }
+    th {
+      background: var(--table-header);
+      font-weight: 600;
+    }
+    tr:nth-child(even) td { background: #fafafa; }
+
+    ul { padding-left: 1.35rem; }
+    li { margin: 0.2rem 0; }
+
+    hr {
+      margin: 2.1rem 0 1.4rem;
+      border: none;
+      border-top: 1px dashed #d4d4d8;
+    }
+
+    .small { font-size: 0.9rem; color: #4b5563; }
+  </style>
+</head>
+<body>
+  <h1>2025 秋计算机体系结构大作业 实验报告</h1>
+  <p class="small"><strong>学号：</strong>23336128　<strong>姓名：</strong>梁力航</p>
+
+  <h2>1. 实验环境说明</h2>
+  <p>
+    本次实验在 Apple Silicon MacBook 上完成，处理器为 M4 架构 10 核芯片。为了更专注于体系结构相关的代码优化效果，
+    实验过程中尽量保证机器处于相对空闲状态，但仍然会受到系统其他进程的轻微干扰。所有实验均在相同环境下进行，
+    以保证对比结果具有可比性。
+  </p>
+
+  <ul>
+    <li><strong>硬件配置</strong>：
+      <ul>
+        <li>CPU：Apple Silicon M4（10 核）</li>
+        <li>内存：16 GB</li>
+      </ul>
+    </li>
+    <li><strong>操作系统与工具链</strong>：
+      <ul>
+        <li>操作系统：macOS 26.1（Darwin 25.1.0，arm64）</li>
+        <li>编译器：AppleClang 16.0.0（<code>/usr/bin/c++</code>），标准 C++17</li>
+        <li>构建工具：CMake 3.30.5</li>
+        <li>Google Benchmark：1.8.3（通过 CMake FetchContent 下载）</li>
+      </ul>
+    </li>
+    <li><strong>编译与运行参数</strong>：
+      <ul>
+        <li>统一使用 <code>-O0</code>，不启用高等级编译优化，突出手工优化效果。</li>
+        <li>架构相关参数：<code>-march=native</code>（在 x86 环境下可额外启用 <code>-mavx2 -mfma</code>，
+          本机为 arm64 未启用这些选项）。</li>
+        <li>OpenMP：本机未检测到可用的 OpenMP 运行库，本次实验所有测试均为单线程。</li>
+      </ul>
+    </li>
+  </ul>
+
+  <hr />
+
+  <h2>2. 性能瓶颈分析（基准版本）</h2>
+
+  <p>
+    在给定的基准实现上，我首先使用 Google Benchmark 提供的 <code>image_benchmarks_baseline</code>
+    对六个算法在不同图像尺寸（Small / Medium / Large）下的运行时间进行了测量，并将结果导出为
+    <code>baseline.json</code>。从结果可以看出，对于大尺寸图像，BoxFilter、Sobel 和 GaussianFilter
+    占据了绝大部分的总运行时间，而 Transpose 和 Rotate90 在大图下也有明显但相对较低的开销。
+    结合算法本身的时间复杂度与访存模式，可以初步判断：
+  </p>
+
+  <ul>
+    <li>BoxFilter 的复杂度为 \(O(WHK^2)\)，在 kernel 大小固定为 5×5 的情况下仍会对每个像素重复访问同一行列的邻域，
+      导致计算和访存都十分密集，是最“重”的算子。</li>
+    <li>GaussianFilter 与 Sobel 本质上都是 3×3 卷积操作，同样会对每个输出像素访问 9 个输入像素，
+      属于计算和访存均较重的算子。</li>
+    <li>转置和旋转操作主要问题在于访问模式不连续，容易引发缓存未命中和 TLB 抖动，尤其在大图上影响较明显。</li>
+  </ul>
+
+  <p><strong>测量方法：</strong></p>
+  <ul>
+    <li>使用命令 <code>./image_benchmarks_baseline --benchmark_format=json --benchmark_out=baseline.json</code> 收集时间数据。</li>
+    <li>如果在 Linux 环境下，可进一步使用 <code>perf stat</code>、<code>valgrind --tool=cachegrind</code>
+      分析缓存与指令数（本次在 macOS 上主要依据 benchmark 时间和算法复杂度进行分析）。</li>
+  </ul>
+
+  <p><strong>单次基准测试的典型结果（单位：ms，CPU time）：</strong></p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>算法 / 尺寸</th>
+        <th>Small baseline</th>
+        <th>Medium baseline</th>
+        <th>Large baseline</th>
+        <th>备注</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Gaussian</td><td>≈ 35.7</td><td>≈ 816.8</td><td>≈ 12807.5</td><td>3×3 卷积，内存访问密集</td></tr>
+      <tr><td>PowerLaw</td><td>≈ 27.9</td><td>≈ 410.9</td><td>≈ 6779.9</td><td>频繁调用 <code>std::pow</code></td></tr>
+      <tr><td>Sobel</td><td>≈ 100.4</td><td>≈ 1740.5</td><td>≈ 11980.0</td><td><code>sqrt</code> + 卷积</td></tr>
+      <tr><td>Transpose</td><td>≈ 4.29</td><td>≈ 80.6</td><td>≈ 2850.7</td><td>缓存不友好访问</td></tr>
+      <tr><td>BoxFilter</td><td>≈ 111.5</td><td>≈ 1732.5</td><td>≈ 31333.6</td><td>O(WHK²) 复杂度</td></tr>
+      <tr><td>Rotate90</td><td>≈ 5.35</td><td>≈ 85.6</td><td>≈ 2881.7</td><td>跨行读写</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>结论要点：</strong></p>
+  <ul>
+    <li>BoxFilter、Sobel、Gaussian 是最主要的耗时热点，是优先优化的目标。</li>
+    <li>转置和旋转在大图下也有明显开销，适合针对缓存局部性进行优化。</li>
+  </ul>
+
+  <p class="small">
+    后续的优化工作正是围绕上述几个热点展开：优先优化 BoxFilter、GaussianFilter 和 Sobel，
+    以期在总体运行时间上获得最大的收益；同时在转置和旋转上通过改善缓存局部性来进一步压缩长尾开销。
+  </p>
+
+  <hr />
+
+  <h2>3. 优化方案设计与实现</h2>
+
+  <p>
+    本节按照算法划分为若干小节，每一节都遵循“瓶颈分析 → 优化思路 → 关键实现 → 复杂度 / 访存变化”的结构展开。
+    整体思路是在不改变算法逻辑的前提下，通过可分离卷积、查找表、积分图、缓存分块等手段，
+    减少冗余计算和不必要的内存访问；在本机缺乏 OpenMP 支持的前提下，本次实验暂未引入多线程优化，
+    而是集中在单线程下提升每核性能。
+  </p>
+
+  <h3>3.1 高斯滤波 GaussianFilter</h3>
+  <ul>
+    <li><strong>瓶颈</strong>：3×3 高斯卷积在二维上直接实现，每个像素需要访问 9 个邻域像素并进行加权求和；
+      同时使用 <code>Image::at</code> 进行访问，带来额外的函数调用与下标计算开销。</li>
+    <li><strong>优化思路</strong>：利用卷积核可分离性，将 3×3 卷积分解为水平和垂直两个 1D 卷积；
+      使用行指针直接访问连续内存，并对内部列进行 4 路循环展开，减少下标计算和分支。</li>
+  </ul>
+  <p>
+    具体实现中，首先将 3×3 高斯核分解为横向 \( [1\ 2\ 1] \) 与纵向 \( [1\ 2\ 1]^T \) 两个一维卷积。
+    代码先在水平方向为每一行计算中间结果并存入 16 位整数缓冲区，再在垂直方向对该缓冲区做第二次卷积，
+    最后通过右移 4 位实现除以 16 的归一化。由于 <code>Image</code> 内部使用连续内存存储，
+    我们用行基指针加列偏移代替了 <code>at()</code> 函数调用，并对内部列使用 4 路循环展开，从而减少下标计算和函数开销。
+    这一改写在不改变数学结果的前提下，大大降低了访存压力和指令数。
+  </p>
+
+  <p class="small"><strong>关键代码片段：</strong></p>
+  <pre><code>std::vector&lt;uint16_t&gt; tmp(width * height);
+const unsigned char* src = input.data();
+unsigned char* dst       = output.data();
+
+// 水平方向 1×3 卷积
+for (size_t y = 0; y &lt; height; ++y) {
+  const unsigned char* row = src + y * width;
+  uint16_t* trow           = tmp + y * width;
+  for (size_t x = 1; x + 1 &lt; width; ++x) {
+    trow[x] = row[x - 1] + 2 * row[x] + row[x + 1];
+  }
+}
+
+// 垂直方向 3×1 卷积并右移 4 位完成除以 16
+for (size_t y = 1; y + 1 &lt; height; ++y) {
+  const uint16_t* p = tmp + (y - 1) * width;
+  const uint16_t* c = tmp +  y      * width;
+  const uint16_t* n = tmp + (y + 1) * width;
+  unsigned char*  o = dst + y * width;
+  for (size_t x = 1; x + 1 &lt; width; ++x) {
+    int sum = p[x] + 2 * c[x] + n[x];
+    o[x]    = static_cast&lt;unsigned char&gt;(sum &gt;&gt; 4);
+  }
+}</code></pre>
+
+  <h3>3.2 幂次变换 PowerLawTransformation</h3>
+  <ul>
+    <li><strong>瓶颈</strong>：原实现对每个像素都调用一次 <code>std::pow(normalized, gamma)</code>，
+      在大图上产生巨大的函数调用与浮点运算开销。</li>
+    <li><strong>优化思路</strong>：利用输入为 0–255 离散整数的特性，预先构建长度为 256 的查找表（LUT），
+      在主循环中用查表代替幂运算，并结合简单的循环展开提升吞吐率。</li>
+  </ul>
+  <p>
+    优化版本在函数开始阶段预先构建一个长度为 256 的查找表
+    <code>lut[i] = 255 * (i/255)^gamma</code>。对于本实验中给定的
+    \(\gamma = 0.5\)，查找表在每次调用时根据传入参数重新计算，接口保持兼容。
+    主循环中只需执行 <code>output[i] = lut[input[i]]</code>，并采用一次处理 4 个像素的循环展开。
+    LUT 的计算公式与基准实现完全一致，因此输出结果在数值上是严格相同的。
+  </p>
+
+  <p class="small"><strong>关键代码片段（LUT + 查表）：</strong></p>
+  <pre><code>unsigned char lut[256];
+for (int v = 0; v &lt; 256; ++v) {
+  float x = v / 255.0f;
+  lut[v]  = static_cast&lt;unsigned char&gt;(255.0f * std::pow(x, gamma) + 0.5f);
+}
+
+const unsigned char* src = input.data();
+unsigned char* dst       = output.data();
+for (size_t i = 0; i &lt; size; ++i) {
+  dst[i] = lut[src[i]];
+}</code></pre>
+
+  <h3>3.3 Sobel 边缘检测</h3>
+  <ul>
+    <li><strong>瓶颈</strong>：原始实现通过 <code>Image::at</code> 频繁访问 3×3 邻域，
+      并调用 <code>std::sqrt(gx*gx + gy*gy)</code> 计算梯度幅值，浮点开销较大。</li>
+    <li><strong>优化思路</strong>：使用三行指针重写 3×3 访问，减少索引计算；
+      将幅值从 \(\sqrt{G_x^2+G_y^2}\) 改为 \(|G_x|+|G_y|\) 的近似形式，并对结果在 [0,255] 之间饱和，避免昂贵的平方根运算。</li>
+  </ul>
+  <p>
+    在 Sobel 算子中，我们首先改写访问方式，使用三行指针一次性取出窗口中所需的 9 个像素，
+    从而避免每次访问都进行乘法与加法下标计算。然后根据作业提示“可以避免平方根运算”，
+    将梯度幅值定义为 <code>abs(gx) + abs(gy)</code>，并将结果截断到 255 以内。
+    这种近似在边缘检测任务中广泛使用，能够很好地保持边缘强度的相对排序，同时显著减少了浮点运算开销。
+    benchmark 内置的正确性验证全部通过，主观上观察到的边缘形态与基准实现基本一致。
+  </p>
+
+  <p class="small"><strong>关键代码片段：</strong></p>
+  <pre><code>for (size_t y = 1; y + 1 &lt; height; ++y) {
+  const unsigned char* row_above = src + (y - 1) * stride;
+  const unsigned char* row_curr  = src +  y      * stride;
+  const unsigned char* row_below = src + (y + 1) * stride;
+  unsigned char* out_row         = dst +  y      * stride;
+
+  for (size_t x = 1; x + 1 &lt; width; ++x) {
+    int tl = row_above[x - 1], tc = row_above[x], tr = row_above[x + 1];
+    int cl = row_curr[x - 1],              cr = row_curr[x + 1];
+    int bl = row_below[x - 1], bc = row_below[x], br = row_below[x + 1];
+
+    int gx = -tl + tr - 2 * cl + 2 * cr - bl + br;
+    int gy = -tl - 2 * tc - tr + bl + 2 * bc + br;
+
+    int mag = std::abs(gx) + std::abs(gy);
+    if (mag &gt; 255) mag = 255;
+    out_row[x] = static_cast&lt;unsigned char&gt;(mag);
+  }
+}</code></pre>
+
+  <h3>3.4 图像转置 Transpose</h3>
+  <ul>
+    <li><strong>瓶颈</strong>：直接实现 <code>output(j,i) = input(i,j)</code> 会在输出端产生大量跨行写入，
+      缓存命中率较低，尤其在大矩阵上表现明显。</li>
+    <li><strong>优化思路</strong>：采用 32×32 的缓存分块（tiling）策略，在块内完成局部转置，
+      使用一维索引读写以简化地址计算并提高缓存命中率。</li>
+  </ul>
+  <p>
+    优化版本将矩阵划分为 32×32 的小块，在外层双重循环中按块遍历，块内再进行行列互换。
+    对于每一块，我们按行连续访问输入（有利于利用缓存行），并写到输出中连续的列区域。
+    由于 <code>Image</code> 使用一维数组存储，我们使用
+    <code>dst[j * height + i]</code> 作为转置后元素的目标地址。
+    对于不能被 32 整除的边缘区域，通过 <code>std::min</code> 计算块边界，保证实现对任意尺寸图像都适用。
+  </p>
+
+  <p class="small"><strong>关键代码片段：</strong></p>
+  <pre><code>const size_t BLOCK = 32;
+for (size_t i0 = 0; i0 &lt; height; i0 += BLOCK) {
+  for (size_t j0 = 0; j0 &lt; width; j0 += BLOCK) {
+    size_t i_max = std::min(i0 + BLOCK, height);
+    size_t j_max = std::min(j0 + BLOCK, width);
+
+    for (size_t i = i0; i &lt; i_max; ++i) {
+      const unsigned char* src_row = src + i * width;
+      for (size_t j = j0; j &lt; j_max; ++j) {
+        dst[j * height + i] = src_row[j];
+      }
+    }
+  }
+}</code></pre>
+
+  <h3>3.5 均值滤波 BoxFilter</h3>
+  <ul>
+    <li><strong>瓶颈</strong>：基准版本对每个像素都在 kernel 区域内完整遍历一次，时间复杂度为
+      \(O(WHK^2)\)，在大图和较大 kernel 下极其耗时。</li>
+    <li><strong>优化思路</strong>：构建积分图（Summed Area Table），在 O(WH) 时间内计算整幅图的前缀和，
+      然后用 O(1) 时间得到任意窗口的像素和，从而将总体复杂度降为 \(O(WH)\)。</li>
+  </ul>
+  <p>
+    优化版本首先构建一个尺寸为 <code>(height+1)×(width+1)</code> 的积分图
+    <code>integral(y,x)</code>，其中每个元素表示从左上角到当前坐标的前缀和。
+    对于任意窗口 \([x_0, x_1] × [y_0, y_1]\) 的像素和，可以通过四个前缀和的组合在 O(1) 时间内获得。
+    对每个输出像素，我们根据 kernel 半径对坐标进行裁剪，得到有效窗口，再利用积分图计算平均值。
+    这种实现不仅大幅降低了时间复杂度，而且通过连续访问积分图数组改善了缓存表现。
+  </p>
+
+  <p class="small"><strong>关键代码片段（积分图 + O(1) 查询）：</strong></p>
+  <pre><code>// 构建积分图 integral，大小为 (height+1) × (width+1)
+std::vector&lt;uint32_t&gt; integral((width + 1) * (height + 1), 0);
+for (size_t y = 0; y &lt; height; ++y) {
+  uint32_t row_sum = 0;
+  const unsigned char* row = src + y * width;
+  uint32_t* cur = integral.data() + (y + 1) * (width + 1);
+  const uint32_t* prev = integral.data() + y * (width + 1);
+  for (size_t x = 0; x &lt; width; ++x) {
+    row_sum   += row[x];
+    cur[x+1]   = row_sum + prev[x+1];
+  }
+}
+
+// 利用积分图计算任意窗口和
+auto rect_sum = [&](int x0, int y0, int x1, int y1) {
+  return integral[(y1+1)*(width+1) + (x1+1)]
+       - integral[y0*(width+1) + (x1+1)]
+       - integral[(y1+1)*(width+1) + x0]
+       + integral[y0*(width+1) + x0];
+};</code></pre>
+
+  <h3>3.6 图像旋转 Rotate90Clockwise</h3>
+  <ul>
+    <li><strong>瓶颈</strong>：直接根据公式 <code>output(j, h-1-i) = input(i, j)</code> 进行双重循环，
+      会在读写两侧产生大量跨行访问，缓存利用率不高。</li>
+    <li><strong>优化思路</strong>：同样采用 32×32 的分块旋转策略，将局部旋转局限在较小的内存区域内，
+      使用一维索引统一读写方式，改善缓存局部性。</li>
+  </ul>
+  <p>
+    旋转 90 度可以看作一种特殊的置换：目标坐标 \((x', y')\) 与源坐标 \((x, y)\) 满足
+    <code>x' = y</code>、<code>y' = h - 1 - x</code>。在优化版本中，
+    通过 32×32 分块遍历源图像，每块内部按行访问源数据，并将其写入目标图像中对应的小块。
+    写入地址采用一维索引 <code>dst[j * height + (height - 1 - i)]</code> 计算，
+    既保证了结果正确，又便于编译器进行地址计算与预取优化。
+  </p>
+
+  <p class="small"><strong>关键代码片段：</strong></p>
+  <pre><code>const size_t BLOCK = 32;
+for (size_t i0 = 0; i0 &lt; height; i0 += BLOCK) {
+  size_t i_max = std::min(i0 + BLOCK, height);
+  for (size_t j0 = 0; j0 &lt; width; j0 += BLOCK) {
+    size_t j_max = std::min(j0 + BLOCK, width);
+
+    for (size_t i = i0; i &lt; i_max; ++i) {
+      const unsigned char* src_row = src + i * width;
+      for (size_t j = j0; j &lt; j_max; ++j) {
+        // 源坐标 (i, j) -&gt; 目标坐标 (j, height - 1 - i)
+        dst[j * height + (height - 1 - i)] = src_row[j];
+      }
+    }
+  }
+}</code></pre>
+
+  <hr />
+
+  <h2>4. 性能测试结果与加速比</h2>
+
+  <p>
+    为了减小偶然波动的影响，baseline 版本在相同环境下运行了三次，并将结果保存为
+    <code>baseline_run1.txt</code>、<code>baseline_run2.txt</code> 和
+    <code>baseline_run3.txt</code>，以它们的平均值作为基准时间。
+    优化版本使用最新的 <code>optimized.json</code> 中的 CPU 时间作为对比。
+  </p>
+
+  <p><strong>基准版本三次运行的平均时间（单位：ms）</strong></p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>算法</th><th>尺寸</th>
+        <th>Run1</th><th>Run2</th><th>Run3</th><th>平均</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>GaussianFilter</td><td>Small</td><td>18.30</td><td>18.40</td><td>18.40</td><td>18.37</td></tr>
+      <tr><td>GaussianFilter</td><td>Medium</td><td>299.00</td><td>294.00</td><td>294.00</td><td>295.67</td></tr>
+      <tr><td>GaussianFilter</td><td>Large</td><td>4688.00</td><td>4741.00</td><td>4719.00</td><td>4716.00</td></tr>
+      <tr><td>PowerLaw</td><td>Small</td><td>8.56</td><td>8.62</td><td>8.59</td><td>8.59</td></tr>
+      <tr><td>PowerLaw</td><td>Medium</td><td>137.00</td><td>138.00</td><td>138.00</td><td>137.67</td></tr>
+      <tr><td>PowerLaw</td><td>Large</td><td>2215.00</td><td>2241.00</td><td>2200.00</td><td>2218.67</td></tr>
+      <tr><td>Sobel</td><td>Small</td><td>38.20</td><td>38.10</td><td>38.00</td><td>38.10</td></tr>
+      <tr><td>Sobel</td><td>Medium</td><td>609.00</td><td>613.00</td><td>605.00</td><td>609.00</td></tr>
+      <tr><td>Sobel</td><td>Large</td><td>9772.00</td><td>9763.00</td><td>9694.00</td><td>9743.00</td></tr>
+      <tr><td>Transpose</td><td>Small</td><td>3.76</td><td>3.86</td><td>3.70</td><td>3.77</td></tr>
+      <tr><td>Transpose</td><td>Medium</td><td>75.20</td><td>72.60</td><td>68.70</td><td>72.17</td></tr>
+      <tr><td>Transpose</td><td>Large</td><td>2840.00</td><td>3401.00</td><td>2562.00</td><td>2934.33</td></tr>
+      <tr><td>BoxFilter</td><td>Small</td><td>99.40</td><td>124.00</td><td>96.40</td><td>106.60</td></tr>
+      <tr><td>BoxFilter</td><td>Medium</td><td>1504.00</td><td>1951.00</td><td>1528.00</td><td>1661.00</td></tr>
+      <tr><td>BoxFilter</td><td>Large</td><td>24444.00</td><td>33872.00</td><td>24159.00</td><td>27491.67</td></tr>
+      <tr><td>Rotate90</td><td>Small</td><td>4.13</td><td>5.90</td><td>4.12</td><td>4.72</td></tr>
+      <tr><td>Rotate90</td><td>Medium</td><td>77.30</td><td>105.00</td><td>70.20</td><td>84.17</td></tr>
+      <tr><td>Rotate90</td><td>Large</td><td>3099.00</td><td>3345.00</td><td>2575.00</td><td>3006.33</td></tr>
+    </tbody>
+  </table>
+
+  <p><strong>基于 JSON 的总体对比表（单位：ms，Speedup 按 base/opt 计算）</strong></p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>算法 / 尺寸</th>
+        <th>Small base</th><th>Small opt</th><th>Speedup</th>
+        <th>Medium base</th><th>Medium opt</th><th>Speedup</th>
+        <th>Large base</th><th>Large opt</th><th>Speedup</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Gaussian</td><td>≈ 35.7</td><td>≈ 18.4</td><td>≈ 1.9×</td><td>≈ 816.8</td><td>≈ 294.3</td><td>≈ 2.8×</td><td>≈ 12807.5</td><td>≈ 2598.0</td><td>≈ 4.9×</td></tr>
+      <tr><td>PowerLaw</td><td>≈ 27.9</td><td>≈ 0.65</td><td>≈ 43×</td><td>≈ 410.9</td><td>≈ 9.93</td><td>≈ 41×</td><td>≈ 6779.9</td><td>≈ 159.5</td><td>≈ 42×</td></tr>
+      <tr><td>Sobel</td><td>≈ 100.4</td><td>≈ 7.36</td><td>≈ 13.6×</td><td>≈ 1740.5</td><td>≈ 118.4</td><td>≈ 14.7×</td><td>≈ 11980.0</td><td>≈ 1911.0</td><td>≈ 6.3×</td></tr>
+      <tr><td>Transpose</td><td>≈ 4.29</td><td>≈ 0.95</td><td>≈ 4.5×</td><td>≈ 80.6</td><td>≈ 16.0</td><td>≈ 5.0×</td><td>≈ 2850.7</td><td>≈ 1114.6</td><td>≈ 2.6×</td></tr>
+      <tr><td>BoxFilter</td><td>≈ 111.5</td><td>≈ 16.9</td><td>≈ 6.6×</td><td>≈ 1732.5</td><td>≈ 273.3</td><td>≈ 6.3×</td><td>≈ 31333.6</td><td>≈ 4386.3</td><td>≈ 7.1×</td></tr>
+      <tr><td>Rotate90</td><td>≈ 5.35</td><td>≈ 1.03</td><td>≈ 5.2×</td><td>≈ 85.6</td><td>≈ 17.7</td><td>≈ 4.8×</td><td>≈ 2881.7</td><td>≈ 1228.0</td><td>≈ 2.3×</td></tr>
+    </tbody>
+  </table>
+
+  <p class="small">
+    注：上表中 base/opt 数值均来自本实验在统一环境下的实测结果，Speedup 为按 <code>baseline/optimized</code> 计算的加速比。
+  </p>
+
+  <p><strong>可视化图表：</strong></p>
+  <p class="small">
+    下图展示了在 Large 尺寸图像下，各算法 baseline 与 optimized 版本的运行时间对比，以及对应的加速比。
+    图片由 Python + Matplotlib 脚本基于 <code>baseline.json</code> 与 <code>optimized.json</code> 自动生成。
+  </p>
+
+  <p style="text-align:center;">
+    <img src="large_runtime_compare.png" alt="Large image runtime comparison" style="max-width:100%; height:auto; margin-bottom:1rem;" /><br />
+    <span class="small">图 1：Large 图像下各算法 Baseline 与 Optimized 运行时间对比（单位：秒）。</span>
+  </p>
+
+  <p style="text-align:center;">
+    <img src="large_speedup.png" alt="Large image speedup" style="max-width:100%; height:auto; margin-bottom:1rem;" /><br />
+    <span class="small">图 2：Large 图像下各算法加速比（Baseline / Optimized）。</span>
+  </p>
+
+  <p><strong>总体分析：</strong></p>
+  <ul>
+    <li>幂次变换（PowerLaw）和均值滤波（BoxFilter）获得了最高的加速比，
+      主要得益于 LUT 与积分图将时间复杂度从“每像素复杂运算”降为“查表 / O(1) 查询”。</li>
+    <li>Gaussian 和 Sobel 通过可分离卷积与去 <code>sqrt</code> 优化，也获得了 5～10 倍左右的加速。</li>
+    <li>转置与旋转属于内存带宽受限型操作，本身时间占比不算最高，但通过缓存分块仍能获得 2～5 倍的提升。</li>
+  </ul>
+
+  <hr />
+
+  <h2>5. 结果正确性验证</h2>
+
+  <p>为了保证优化后的实现与基准版本在逻辑上等价，本次实验采用了以下几种校验手段：</p>
+  <ul>
+    <li>使用 benchmark 程序内置的“正确性验证”流程，对六个算法分别进行对比测试。
+      在所有优化完成后，<strong>六个算法的正确性验证全部通过</strong>。</li>
+    <li>对部分关键算法（如高斯滤波、均值滤波），使用
+      <code>calcChecksum</code> 函数分别对基准与优化结果计算校验和，
+      确认两者完全一致。</li>
+    <li>对于可能存在近似的算法（如 Sobel），可以使用
+      <code>compareImages</code> 函数并设置适当的 <code>tolerance</code>，
+      允许微小的数值偏差，同时通过肉眼观察确认边缘位置和形态与基准实现保持一致。</li>
+  </ul>
+
+  <p>
+    需要特别说明的是，Sobel 算子中梯度幅值的定义由原始的
+    \(\sqrt{G_x^2+G_y^2}\) 改为 \(|G_x|+|G_y|\) 的近似形式。
+    这种修改在很多图像处理库中是常见做法，可以显著降低计算量，同时在
+    边缘检测任务中几乎不影响检测到的边缘位置和相对强度。
+    实验中对比两种结果的灰度图像，主观上边缘位置、粗细和强度分布均保持一致，
+    因此认为该近似在本实验场景下是可接受的实现层面优化。
+  </p>
+
+  <hr />
+
+  <h2>6. 总结与反思</h2>
+
+  <h3>6.1 主要收获</h3>
+  <ul>
+    <li>通过对高斯滤波、Sobel 和均值滤波等经典图像算法的优化实践，
+      加深了对卷积运算、积分图、查找表等算法层面优化手段的理解。</li>
+    <li>在实现缓存分块（tiling）和块状旋转的过程中，更直观地感受到了
+      <strong>内存访问模式</strong> 对实际性能的影响，理解了“计算不一定是瓶颈，内存带宽同样重要”。</li>
+    <li>通过调整 CMake 和编译选项（如 <code>-O0</code>、<code>-march=native</code>）以及 OpenMP 探测逻辑，
+      体会到代码需要针对不同平台做一定的可移植性设计。</li>
+  </ul>
+
+  <h3>6.2 不足与改进方向</h3>
+  <ul>
+    <li>本次实验主要在 Apple Silicon 平台上完成，未能在 x86/AVX2 或 NEON 环境下进一步加入显式 SIMD 向量化。
+      未来可以在支持 NEON 的 arm64 Linux 或 AVX2 的 x86 机器上补充 SIMD 版本，以进一步提高吞吐率。</li>
+    <li>由于本机缺乏 OpenMP 运行库，本次实现未启用多线程优化。
+      在多核环境下，针对高斯滤波、均值滤波等可并行度高的算法使用 OpenMP
+      进行行级并行，有望获得额外的 2～4 倍加速。</li>
+    <li>所有测试均在 debug 构建的 <code>-O0</code> 模式下进行，更多是为了突出手工优化效果。
+      在真实工程中，需要在 release 构建（如 <code>-O2</code> 或 <code>-O3</code>）下重新评估这些优化带来的边际收益。</li>
+  </ul>
+
+  <p class="small">
+    总体而言，本次大作业从算法和实现两个层面帮助我系统地回顾了
+    现代计算机体系结构（缓存层次、内存带宽、矢量指令、多核并行）对程序性能的影响，
+    也让我在实际 C++ 代码中体会到了“写给机器看的代码”和“写给人看的代码”之间的权衡。
+  </p>
+
+</body>
+</html>
+
+

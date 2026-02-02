@@ -1,0 +1,2 @@
+/Library/Developer/CommandLineTools/usr/bin/ar qc libimage_algorithms_optimized.a CMakeFiles/image_algorithms_optimized.dir/src/image_algorithms_optimize.cpp.o
+/Library/Developer/CommandLineTools/usr/bin/ranlib libimage_algorithms_optimized.a
