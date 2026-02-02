@@ -75,7 +75,7 @@ def create_iq_impact_chart(data):
     ax2.set_yscale('log')
     
     plt.tight_layout()
-    plt.savefig('/Users/lianglihang/Downloads/ComputerArchitecture/lab1/out/iq_impact.png', 
+    plt.savefig('out/iq_impact.png', 
                 dpi=300, bbox_inches='tight')
     plt.close()
 
@@ -123,7 +123,7 @@ def create_rob_impact_chart(data):
     ax2.set_yscale('log')
     
     plt.tight_layout()
-    plt.savefig('/Users/lianglihang/Downloads/ComputerArchitecture/lab1/out/rob_impact.png', 
+    plt.savefig('out/rob_impact.png', 
                 dpi=300, bbox_inches='tight')
     plt.close()
 
@@ -158,7 +158,7 @@ def create_regs_impact_chart(data):
     ax.set_yscale('log')
     
     plt.tight_layout()
-    plt.savefig('/Users/lianglihang/Downloads/ComputerArchitecture/lab1/out/regs_impact.png', 
+    plt.savefig('out/regs_impact.png', 
                 dpi=300, bbox_inches='tight')
     plt.close()
 
@@ -237,7 +237,7 @@ def create_performance_overview(data):
                         ha='center', va='bottom', rotation=0)
     
     plt.tight_layout()
-    plt.savefig('/Users/lianglihang/Downloads/ComputerArchitecture/lab1/out/performance_overview.png', 
+    plt.savefig('out/performance_overview.png', 
                 dpi=300, bbox_inches='tight')
     plt.close()
 
@@ -250,7 +250,7 @@ def main():
         print("请运行: pip3 install matplotlib")
         return
     
-    csv_path = '/Users/lianglihang/Downloads/ComputerArchitecture/lab1/out/summary.csv'
+    csv_path = 'out/summary.csv'
     data = load_data(csv_path)
     
     if not data:

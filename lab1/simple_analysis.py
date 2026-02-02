@@ -176,7 +176,7 @@ def generate_summary_table(data):
 
 def main():
     """主函数"""
-    csv_path = '/Users/lianglihang/Downloads/ComputerArchitecture/lab1/out/summary.csv'
+    csv_path = 'out/summary.csv'
     
     # 加载数据
     data = load_data(csv_path)

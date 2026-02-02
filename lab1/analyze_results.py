@@ -80,7 +80,7 @@ def create_heatmaps(df):
         axes[i].set_ylabel('ROB 条目数')
     
     plt.tight_layout()
-    plt.savefig('/Users/lianglihang/Downloads/ComputerArchitecture/lab1/out/heatmaps.png', 
+    plt.savefig('out/heatmaps.png', 
                 dpi=300, bbox_inches='tight')
     plt.close()
 
@@ -125,7 +125,7 @@ def create_line_plots(df):
     axes[1,1].grid(True, alpha=0.3)
     
     plt.tight_layout()
-    plt.savefig('/Users/lianglihang/Downloads/ComputerArchitecture/lab1/out/line_plots.png', 
+    plt.savefig('out/line_plots.png', 
                 dpi=300, bbox_inches='tight')
     plt.close()
 
@@ -145,7 +145,7 @@ def generate_summary_table(df):
 def main():
     """主函数"""
     # 加载数据
-    df = load_data('/Users/lianglihang/Downloads/ComputerArchitecture/lab1/out/summary.csv')
+    df = load_data('out/summary.csv')
     
     print(f"加载了 {len(df)} 个仿真结果")
     print(f"参数组合: 物理寄存器 {sorted(df['regs'].unique())}")
